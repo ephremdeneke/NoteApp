@@ -5,25 +5,25 @@ import cors from "cors";
 import path from "path";
 
 import notesRouters from "./routes/notesRouters.js";
+import authRoutes from "./routes/authRoutes.js";
 import { connectDB } from "./config/db.js";
 import rateLimiter from "./middleware/rateLimiter.js";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
-const __dirname = path.resolve()
-
+const __dirname = path.resolve();
 
 // ✅ Enable CORS for React frontend
 if (process.env.NODE_ENV !== "production") {
-app.use(cors({
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+  app.use(
+    cors({
+      origin: "http://localhost:5173",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true,
+    })
+  );
 }
-
-
 
 // ✅ Parse JSON request bodies
 app.use(express.json());
@@ -34,7 +34,10 @@ app.use(rateLimiter);
 // ✅ Connect to MongoDB
 connectDB();
 
-// ✅ Routes
+// ✅ Auth routes (login/register)
+app.use("/api/auth", authRoutes);
+
+// ✅ Notes routes (protected by auth middleware)
 app.use("/api/notes", notesRouters);
 
 if (process.env.NODE_ENV === "production") {
@@ -46,13 +49,12 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-
-  
-
 // ✅ Global error handler (optional but helpful)
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
-  res.status(500).json({ message: "Internal Server Error", error: err.message });
+  res
+    .status(500)
+    .json({ message: "Internal Server Error", error: err.message });
 });
 
 // ✅ Start server

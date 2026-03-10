@@ -14,6 +14,14 @@ const NoteDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const storedUser = localStorage.getItem("user");
+  const currentUser = storedUser ? JSON.parse(storedUser) : null;
+  const isOwner =
+    note &&
+    note.user &&
+    currentUser &&
+    (note.user._id === currentUser.id || note.user === currentUser.id);
+
   // ✅ Fetch note details
   useEffect(() => {
     const fetchNote = async () => {
@@ -76,9 +84,14 @@ const NoteDetailPage = () => {
             <Link to="/" className="btn btn-ghost mb-6 flex items-center gap-2">
               <ArrowBigLeftIcon className="size-5" /> Back to Notes
             </Link>
-            <button onClick={handleDelete} className="btn btn-error btn-outline">
-              <Trash2Icon className="size-5" /> Delete Note
-            </button>
+            {isOwner && (
+              <button
+                onClick={handleDelete}
+                className="btn btn-error btn-outline"
+              >
+                <Trash2Icon className="size-5" /> Delete Note
+              </button>
+            )}
           </div>
 
           <div className="card bg-base-100">
@@ -93,6 +106,7 @@ const NoteDetailPage = () => {
                   className="input input-bordered"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  readOnly={!isOwner}
                 />
               </div>
 
@@ -105,18 +119,21 @@ const NoteDetailPage = () => {
                   className="textarea textarea-bordered h-32"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
+                  readOnly={!isOwner}
                 />
               </div>
 
-              <div className="card-actions justify-end">
-                <button
-                  className="btn btn-primary"
-                  disabled={saving}
-                  onClick={handleSave}
-                >
-                  {saving ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
+              {isOwner && (
+                <div className="card-actions justify-end">
+                  <button
+                    className="btn btn-primary"
+                    disabled={saving}
+                    onClick={handleSave}
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
